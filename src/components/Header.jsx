@@ -7,14 +7,14 @@ const Header = () => {
     <div>
       <Navbar expand="lg" className="bg-body-tertiary">
       <Container>
-        <Navbar.Brand href="/">CityZen</Navbar.Brand>
+        <Navbar.Brand href="/home">CityZen</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="/">Home</Nav.Link>
+            <Nav.Link href="/home">Home</Nav.Link>
             <Nav.Link href="/report-issue">Report Issue</Nav.Link>
              <Nav.Link href="/track-reports">Track Reports</Nav.Link>
-              <Nav.Link href="/about">About</Nav.Link>
+              <Nav.Link href="/">About</Nav.Link>
               <Nav.Link href="/contact">Contact-Us</Nav.Link>
               <Nav.Link href="/sign-up">Sign-Up</Nav.Link>
               <Nav.Link href="/login">Login</Nav.Link>
