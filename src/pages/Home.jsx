@@ -4,14 +4,14 @@ import Layout from '../components/Layout'
 
 const Home = () => {
      const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-     // Update isMobile on resize
+    
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Common container style
+
   const containerStyle = {
     maxWidth: 1280,
     margin: "0 auto",
@@ -97,7 +97,7 @@ const StepCard = ({ step, title, description }) => {
   return (
    <Layout>
     <main style={{ backgroundColor: "#F9FAFB", minHeight: "100vh", flexGrow: 1 }}>
-      {/* Hero Section */}
+      
       <section
         style={{
           display: "flex",
@@ -141,7 +141,7 @@ const StepCard = ({ step, title, description }) => {
           </p>
           <div style={{ display: "flex", justifyContent: isMobile ? "center" : "flex-start", gap: 16 }}>
             <a
-              href="/register"
+              href="/user"
               style={{
                 backgroundColor: "#4F46E5",
                 color: "white",
@@ -194,7 +194,7 @@ const StepCard = ({ step, title, description }) => {
         </div>
       </section>
 
-      {/* Features Section */}
+     
       <section
         id="features"
         style={{
@@ -275,7 +275,7 @@ const StepCard = ({ step, title, description }) => {
         </div>
       </section>
 
-      {/* Live Map Section */}
+      
      <section
   id="how-it-works"
   style={{
@@ -322,7 +322,7 @@ const StepCard = ({ step, title, description }) => {
   </div>
 </section>
 
-      {/* Benefits Section */}
+      
       <section style={{ ...containerStyle, maxWidth: 960, paddingTop: 64, paddingBottom: 64 }}>
         <h2
           style={{
@@ -353,7 +353,7 @@ const StepCard = ({ step, title, description }) => {
         </div>
       </section>
 
-      {/* Final Call to Action */}
+     
       <section
         style={{
           backgroundColor: "#4F46E5",
