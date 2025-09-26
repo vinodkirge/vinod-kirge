@@ -25,9 +25,9 @@ const ReportIssue = () => {
     description: "",
     audio: null,
     video: null,
+    location: null, // 🔍 New: location state
   });
 
-  // Refs for hidden inputs
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
 
@@ -50,6 +50,40 @@ const ReportIssue = () => {
     e.preventDefault();
     console.log("Form submitted:", form);
     alert("Issue submitted! (Frontend only)");
+  };
+
+  // 📍 Ask for location, then open camera
+  const handleTakePhoto = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        console.log("Location:", latitude, longitude);
+
+        setForm((prevForm) => ({
+          ...prevForm,
+          location: { latitude, longitude },
+        }));
+
+        // Now open the camera input
+        if (cameraInputRef.current) {
+          cameraInputRef.current.click();
+        }
+      },
+      (error) => {
+        console.warn("Location permission denied or unavailable:", error.message);
+        alert("Location permission is required to tag the issue. Please allow location access.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
   };
 
   return (
@@ -84,15 +118,14 @@ const ReportIssue = () => {
               boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
             }}
           >
-            {/* 📷 Custom Camera and Gallery Inputs */}
+            {/* 📷 Photo Input */}
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>Upload Photo of Issue</label>
 
               <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
-                {/* Camera Button */}
                 <button
                   type="button"
-                  onClick={() => cameraInputRef.current.click()}
+                  onClick={handleTakePhoto}
                   style={{
                     flex: 1,
                     padding: "12px",
@@ -107,7 +140,6 @@ const ReportIssue = () => {
                   📸 Take Photo
                 </button>
 
-                {/* Gallery Button */}
                 <button
                   type="button"
                   onClick={() => galleryInputRef.current.click()}
@@ -126,7 +158,7 @@ const ReportIssue = () => {
                 </button>
               </div>
 
-              {/* Hidden Camera Input */}
+              {/* Hidden Inputs */}
               <input
                 ref={cameraInputRef}
                 type="file"
@@ -137,7 +169,6 @@ const ReportIssue = () => {
                 style={{ display: "none" }}
               />
 
-              {/* Hidden Gallery Input */}
               <input
                 ref={galleryInputRef}
                 type="file"
@@ -147,7 +178,7 @@ const ReportIssue = () => {
                 style={{ display: "none" }}
               />
 
-              {/* Preview if photo selected */}
+              {/* Show file name */}
               {form.photo && (
                 <div style={{ marginTop: 12 }}>
                   <strong>Selected:</strong> {form.photo.name}
@@ -197,7 +228,18 @@ const ReportIssue = () => {
               />
             </div>
 
-            {/* 🚀 Submit */}
+            {/* 📍 Location Display */}
+            {form.location && (
+              <div style={{ marginBottom: 20 }}>
+                <label style={labelStyle}>Detected Location:</label>
+                <div>
+                  Latitude: {form.location.latitude.toFixed(5)}, Longitude:{" "}
+                  {form.location.longitude.toFixed(5)}
+                </div>
+              </div>
+            )}
+
+            {/* Submit Button */}
             <div style={{ textAlign: "center" }}>
               <button
                 type="submit"
