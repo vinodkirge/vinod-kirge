@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Layout from "../components/Layout";
 
 const ReportIssue = () => {
@@ -26,6 +26,10 @@ const ReportIssue = () => {
     audio: null,
     video: null,
   });
+
+  // Refs for hidden inputs
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -80,18 +84,75 @@ const ReportIssue = () => {
               boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
             }}
           >
-            {/* 📷 Photo input with camera access */}
+            {/* 📷 Custom Camera and Gallery Inputs */}
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>Upload Photo of Issue</label>
+
+              <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
+                {/* Camera Button */}
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current.click()}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    backgroundColor: "#E0E7FF",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    fontSize: 16,
+                    cursor: "pointer",
+                  }}
+                >
+                  📸 Take Photo
+                </button>
+
+                {/* Gallery Button */}
+                <button
+                  type="button"
+                  onClick={() => galleryInputRef.current.click()}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    backgroundColor: "#FEF9C3",
+                    border: "1px solid #FCD34D",
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    fontSize: 16,
+                    cursor: "pointer",
+                  }}
+                >
+                  🖼️ Gallery
+                </button>
+              </div>
+
+              {/* Hidden Camera Input */}
               <input
+                ref={cameraInputRef}
                 type="file"
                 name="photo"
                 accept="image/*"
-                capture="environment" // This prompts camera on mobile devices
+                capture="environment"
                 onChange={handleChange}
-                style={inputStyle}
-                required
+                style={{ display: "none" }}
               />
+
+              {/* Hidden Gallery Input */}
+              <input
+                ref={galleryInputRef}
+                type="file"
+                name="photo"
+                accept="image/*"
+                onChange={handleChange}
+                style={{ display: "none" }}
+              />
+
+              {/* Preview if photo selected */}
+              {form.photo && (
+                <div style={{ marginTop: 12 }}>
+                  <strong>Selected:</strong> {form.photo.name}
+                </div>
+              )}
             </div>
 
             {/* 📝 Description */}
@@ -112,7 +173,7 @@ const ReportIssue = () => {
               />
             </div>
 
-            {/* 🎤 Optional audio */}
+            {/* 🎤 Audio */}
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>Upload Voice Note (optional)</label>
               <input
@@ -124,7 +185,7 @@ const ReportIssue = () => {
               />
             </div>
 
-            {/* 📹 Optional video */}
+            {/* 📹 Video */}
             <div style={{ marginBottom: 32 }}>
               <label style={labelStyle}>Upload Video of Issue (optional)</label>
               <input
