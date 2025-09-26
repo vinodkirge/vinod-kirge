@@ -25,7 +25,8 @@ const ReportIssue = () => {
     description: "",
     audio: null,
     video: null,
-    location: null, // 🔍 New: location state
+    location: null, // { lat, lon }
+    locationName: "", // Human-readable address
   });
 
   const cameraInputRef = useRef(null);
@@ -37,12 +38,81 @@ const ReportIssue = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleChange = (e) => {
+  const fetchLocationName = async (lat, lon) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+      );
+      const data = await res.json();
+      return data.display_name || "Location name not found";
+    } catch (err) {
+      console.error("Reverse geocoding failed:", err);
+      return "Failed to retrieve location name";
+    }
+  };
+
+  const getLocationAndSave = async () => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        alert("Geolocation not supported.");
+        reject("No geolocation");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          const name = await fetchLocationName(latitude, longitude);
+
+          setForm((prev) => ({
+            ...prev,
+            location: { latitude, longitude },
+            locationName: name,
+          }));
+
+          resolve();
+        },
+        (error) => {
+          alert("Please allow location access.");
+          reject(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    });
+  };
+
+  const handleChange = async (e) => {
     const { name, files, value } = e.target;
-    if (name === "photo" || name === "audio" || name === "video") {
-      setForm({ ...form, [name]: files[0] });
+    if (name === "photo") {
+      const selectedFile = files[0];
+
+      if (!selectedFile) return;
+
+      // Get location BEFORE setting photo
+      try {
+        await getLocationAndSave();
+      } catch (err) {
+        console.warn("Location fetch failed or denied.");
+      }
+
+      setForm((prev) => ({
+        ...prev,
+        photo: selectedFile,
+      }));
+    } else if (name === "audio" || name === "video") {
+      setForm((prev) => ({
+        ...prev,
+        [name]: files[0],
+      }));
     } else {
-      setForm({ ...form, [name]: value });
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
     }
   };
 
@@ -50,40 +120,6 @@ const ReportIssue = () => {
     e.preventDefault();
     console.log("Form submitted:", form);
     alert("Issue submitted! (Frontend only)");
-  };
-
-  // 📍 Ask for location, then open camera
-  const handleTakePhoto = () => {
-    if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        console.log("Location:", latitude, longitude);
-
-        setForm((prevForm) => ({
-          ...prevForm,
-          location: { latitude, longitude },
-        }));
-
-        // Now open the camera input
-        if (cameraInputRef.current) {
-          cameraInputRef.current.click();
-        }
-      },
-      (error) => {
-        console.warn("Location permission denied or unavailable:", error.message);
-        alert("Location permission is required to tag the issue. Please allow location access.");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
-    );
   };
 
   return (
@@ -125,7 +161,7 @@ const ReportIssue = () => {
               <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
                 <button
                   type="button"
-                  onClick={handleTakePhoto}
+                  onClick={() => cameraInputRef.current.click()}
                   style={{
                     flex: 1,
                     padding: "12px",
@@ -158,7 +194,7 @@ const ReportIssue = () => {
                 </button>
               </div>
 
-              {/* Hidden Inputs */}
+              {/* Hidden Camera and Gallery Inputs */}
               <input
                 ref={cameraInputRef}
                 type="file"
@@ -178,10 +214,16 @@ const ReportIssue = () => {
                 style={{ display: "none" }}
               />
 
-              {/* Show file name */}
+              {/* Show photo preview */}
               {form.photo && (
                 <div style={{ marginTop: 12 }}>
                   <strong>Selected:</strong> {form.photo.name}
+                  <br />
+                  {form.locationName && (
+                    <div style={{ marginTop: 8, color: "#4B5563" }}>
+                      📍 Location Detected: <em>{form.locationName}</em>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -228,18 +270,7 @@ const ReportIssue = () => {
               />
             </div>
 
-            {/* 📍 Location Display */}
-            {form.location && (
-              <div style={{ marginBottom: 20 }}>
-                <label style={labelStyle}>Detected Location:</label>
-                <div>
-                  Latitude: {form.location.latitude.toFixed(5)}, Longitude:{" "}
-                  {form.location.longitude.toFixed(5)}
-                </div>
-              </div>
-            )}
-
-            {/* Submit Button */}
+            {/* Submit */}
             <div style={{ textAlign: "center" }}>
               <button
                 type="submit"
